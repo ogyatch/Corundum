@@ -11,21 +11,33 @@ camera.lookAt(0, 0, 0);
 // レンダラーの作成
 const renderer = new THREE.WebGLRenderer();
 renderer.setSize(window.innerWidth, window.innerHeight);
+// 背景色を白に設定
+renderer.setClearColor(0xffffff);
 document.body.appendChild(renderer.domElement);
 
 // 正八面体のジオメトリを作成
 const geometry = new THREE.OctahedronGeometry();
 
-// 各面にグラデーションを適用するための頂点カラーを設定
-const colors = [];
-const color1 = new THREE.Color(0xff0000); // 赤
-const color2 = new THREE.Color(0x800080); // 紫
+// グラデーション用のカラーを設定
+const color1 = new THREE.Color(0xDF0522); // 赤
+const color2 = new THREE.Color(0xbc4e9c); // 紫
+const color3 = new THREE.Color(0xff6384); // 淡いピンク
+const color4 = new THREE.Color(0xe60073); // 濃いピンク
 
-// 各面に対してグラデーションを設定
+// 各面に対して隣接する面で似た色を共有するように設定
+const colors = [];
 for (let i = 0; i < geometry.attributes.position.count; i += 3) {
-    colors.push(color1.r, color1.g, color1.b); // 頂点1の色
-    colors.push(color2.r, color2.g, color2.b); // 頂点2の色
-    colors.push(color1.r, color1.g, color1.b); // 頂点3の色
+    if (i % 9 === 0) {
+        // 一つの面
+        colors.push(color1.r, color1.g, color1.b);
+        colors.push(color2.r, color2.g, color2.b);
+        colors.push(color3.r, color3.g, color3.b);
+    } else {
+        // 隣接する面
+        colors.push(color3.r, color3.g, color3.b);
+        colors.push(color4.r, color4.g, color4.b);
+        colors.push(color1.r, color1.g, color1.b);
+    }
 }
 
 geometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
