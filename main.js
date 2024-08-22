@@ -42,17 +42,14 @@ for (let i = 0; i < geometry.attributes.position.count; i += 3) {
 
 geometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
 
-// マテリアルの作成
-const material = new THREE.MeshPhongMaterial({ vertexColors: true, side: THREE.DoubleSide });
+// 影のないマテリアルを使用
+const material = new THREE.MeshBasicMaterial({ vertexColors: true, side: THREE.DoubleSide });
 
 // メッシュの作成
 const octahedron = new THREE.Mesh(geometry, material);
 scene.add(octahedron);
 
-// ライトの追加
-const light = new THREE.PointLight(0xffffff, 1);
-light.position.set(5, 5, 5);
-scene.add(light);
+// ライトの追加は不要、影をつけないため
 
 // レンダリング関数
 function render() {
