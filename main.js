@@ -61,17 +61,47 @@ scene.add(octahedron);
 
 // カメラの更新関数
 function updateCameraPosition() {
-    const x = parseFloat(document.getElementById('x').value);
-    const y = parseFloat(document.getElementById('y').value);
-    const z = parseFloat(document.getElementById('z').value);
+    let x = parseFloat(document.getElementById('x').value);
+    let y = parseFloat(document.getElementById('y').value);
+    let z = parseFloat(document.getElementById('z').value);
+
+    const scaleFactor = 2.4 / z; // 2.4 は初期のZ座標値。これに基づいてスケールを調整します。
     
+    x *= scaleFactor;
+    y *= scaleFactor;
+    z = 2.4; // Zを固定
+
     camera.position.set(x, y, z);
     camera.lookAt(0, 0, 0);
 
     render(); // カメラ位置を更新後に再描画
 }
 
-document.getElementById('updateCamera').addEventListener('click', updateCameraPosition);
+// ランダムなカメラ位置を生成し、サイズ感が許容範囲内かチェックする関数
+function generateRandomCameraPosition() {
+    let acceptable = false;
+
+    while (!acceptable) {
+        const randomX = (Math.random() * 4 - 2).toFixed(1); // -2 から 2 の範囲
+        const randomY = (Math.random() * 4 - 2).toFixed(1); // -2 から 2 の範囲
+        const randomZ = (Math.random() * 2 + 1.2).toFixed(1); // 1.2 から 3.2 の範囲
+        
+        const testScaleFactor = 2.4 / parseFloat(randomZ);
+
+        // スケールファクターが1に近い場合にのみ、許容とする
+        if (testScaleFactor >= 0.9 && testScaleFactor <= 1.1) {
+            document.getElementById('x').value = randomX;
+            document.getElementById('y').value = randomY;
+            document.getElementById('z').value = randomZ;
+            acceptable = true; // 許容範囲内ならループを抜ける
+        }
+    }
+
+    updateCameraPosition(); // 新しいカメラ位置で再描画
+}
+
+// Generateボタンのイベントリスナー
+document.getElementById('generateRandom').addEventListener('click', generateRandomCameraPosition);
 
 // レンダリング関数
 function render() {
