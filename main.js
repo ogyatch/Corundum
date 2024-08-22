@@ -4,9 +4,11 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.150.0/build/three.m
 const scene = new THREE.Scene();
 
 // カメラの作成
+const initialPosition = { x: -2, y: 0.2, z: -0.5 }; // 初期位置を指定
+const initialDistance = Math.sqrt(initialPosition.x**2 + initialPosition.y**2 + initialPosition.z**2);
 const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-camera.position.set(-2, 0.2, -0.5);
-camera.lookAt(0, 0, 0);
+camera.position.set(initialPosition.x, initialPosition.y, initialPosition.z);
+camera.lookAt(0, 0, 0); // 中心点を向く
 
 // レンダラーの作成
 const renderer = new THREE.WebGLRenderer();
@@ -36,12 +38,12 @@ const facesColors = [
     [color4, color3, color2]
 ];
 
-// 各頂点に色を設定し、色のブレンドを強化して境界線が目立たないように調整
+// 各頂点に色を設定し、色のブレンドを強化して境界線が目立たなくする
 for (let i = 0; i < geometry.attributes.position.count; i++) {
     const faceIndex = Math.floor(i / 9); // 1つの面ごとに3頂点
     const color = facesColors[faceIndex % facesColors.length][i % 3];
     
-    // 隣接する色とブレンドすることで、境界線を目立たなくする
+    // 隣接する色とブレンドすることで、境界線が目立たなくする
     const blendedColor = new THREE.Color(
         (color.r + facesColors[(faceIndex + 1) % facesColors.length][i % 3].r) / 2,
         (color.g + facesColors[(faceIndex + 1) % facesColors.length][i % 3].g) / 2,
@@ -65,37 +67,29 @@ function updateCameraPosition() {
     let y = parseFloat(document.getElementById('y').value);
     let z = parseFloat(document.getElementById('z').value);
 
-    const scaleFactor = 2.4 / z; // 2.4 は初期のZ座標値。これに基づいてスケールを調整します。
-    
+    const distance = Math.sqrt(x**2 + y**2 + z**2);
+    const scaleFactor = initialDistance / distance;
+
+    // スケーリングを適用してカメラ位置を調整
     x *= scaleFactor;
     y *= scaleFactor;
-    z = 2.4; // Zを固定
+    z *= scaleFactor;
 
     camera.position.set(x, y, z);
-    camera.lookAt(0, 0, 0);
+    camera.lookAt(0, 0, 0); // 常に中心点を向く
 
     render(); // カメラ位置を更新後に再描画
 }
 
-// ランダムなカメラ位置を生成し、サイズ感が許容範囲内かチェックする関数
+// ランダムなカメラ位置を生成する関数
 function generateRandomCameraPosition() {
-    let acceptable = false;
+    let randomX = (Math.random() * 20 - 10).toFixed(1); // -10 から 10 の範囲
+    let randomY = (Math.random() * 20 - 10).toFixed(1); // -10 から 10 の範囲
+    let randomZ = (Math.random() * 20 - 10).toFixed(1);  // -10 から 10 の範囲
 
-    while (!acceptable) {
-        const randomX = (Math.random() * 4 - 2).toFixed(1); // -2 から 2 の範囲
-        const randomY = (Math.random() * 4 - 2).toFixed(1); // -2 から 2 の範囲
-        const randomZ = (Math.random() * 2 + 1.2).toFixed(1); // 1.2 から 3.2 の範囲
-        
-        const testScaleFactor = 2.4 / parseFloat(randomZ);
-
-        // スケールファクターが1に近い場合にのみ、許容とする
-        if (testScaleFactor >= 0.9 && testScaleFactor <= 1.1) {
-            document.getElementById('x').value = randomX;
-            document.getElementById('y').value = randomY;
-            document.getElementById('z').value = randomZ;
-            acceptable = true; // 許容範囲内ならループを抜ける
-        }
-    }
+    document.getElementById('x').value = randomX;
+    document.getElementById('y').value = randomY;
+    document.getElementById('z').value = randomZ;
 
     updateCameraPosition(); // 新しいカメラ位置で再描画
 }
