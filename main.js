@@ -5,14 +5,13 @@ const scene = new THREE.Scene();
 
 // カメラの作成
 const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-camera.position.set(0.6, 0.3, 2.4);
+camera.position.set(-2, 0.2, -0.5);
 camera.lookAt(0, 0, 0);
 
 // レンダラーの作成
 const renderer = new THREE.WebGLRenderer();
 renderer.setSize(window.innerWidth, window.innerHeight);
-// 背景色を白に設定
-renderer.setClearColor(0xffffff);
+renderer.setClearColor(0xffffff); // 背景色を白に設定
 document.body.appendChild(renderer.domElement);
 
 // 正八面体のジオメトリを作成
@@ -24,28 +23,55 @@ const color2 = new THREE.Color(0xbc4e9c); // 紫
 const color3 = new THREE.Color(0xff6384); // 淡いピンク
 const color4 = new THREE.Color(0xe60073); // 濃いピンク
 
-// 各面が自然に繋がるように、頂点カラーを設定
+// 頂点ごとに適切な色を設定し、特に中央の四角形部分の境界線を目立たなくする
 const colors = [];
-const vertexColors = [
-    color1, color2, color3,
-    color3, color4, color1,
-    color2, color3, color4,
-    color4, color1, color2
+const facesColors = [
+    [color1, color2, color3],
+    [color2, color3, color4],
+    [color3, color4, color1],
+    [color4, color1, color2],
+    [color2, color1, color4],
+    [color1, color3, color4],
+    [color3, color2, color4],
+    [color4, color3, color2]
 ];
 
+// 各頂点に色を設定し、色のブレンドを強化して境界線が目立たないように調整
 for (let i = 0; i < geometry.attributes.position.count; i++) {
-    const color = vertexColors[i % vertexColors.length];
-    colors.push(color.r, color.g, color.b);
+    const faceIndex = Math.floor(i / 9); // 1つの面ごとに3頂点
+    const color = facesColors[faceIndex % facesColors.length][i % 3];
+    
+    // 隣接する色とブレンドすることで、境界線を目立たなくする
+    const blendedColor = new THREE.Color(
+        (color.r + facesColors[(faceIndex + 1) % facesColors.length][i % 3].r) / 2,
+        (color.g + facesColors[(faceIndex + 1) % facesColors.length][i % 3].g) / 2,
+        (color.b + facesColors[(faceIndex + 1) % facesColors.length][i % 3].b) / 2
+    );
+    colors.push(blendedColor.r, blendedColor.g, blendedColor.b);
 }
 
 geometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
 
-// 影のないマテリアルを使用し、ワイヤーフレームを無効化
+// マテリアルの作成
 const material = new THREE.MeshBasicMaterial({ vertexColors: true, side: THREE.DoubleSide });
 
 // メッシュの作成
 const octahedron = new THREE.Mesh(geometry, material);
 scene.add(octahedron);
+
+// カメラの更新関数
+function updateCameraPosition() {
+    const x = parseFloat(document.getElementById('x').value);
+    const y = parseFloat(document.getElementById('y').value);
+    const z = parseFloat(document.getElementById('z').value);
+    
+    camera.position.set(x, y, z);
+    camera.lookAt(0, 0, 0);
+
+    render(); // カメラ位置を更新後に再描画
+}
+
+document.getElementById('updateCamera').addEventListener('click', updateCameraPosition);
 
 // レンダリング関数
 function render() {
