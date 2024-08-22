@@ -24,24 +24,18 @@ const color2 = new THREE.Color(0xbc4e9c); // 紫
 const color3 = new THREE.Color(0xff6384); // 淡いピンク
 const color4 = new THREE.Color(0xe60073); // 濃いピンク
 
-// 各面に対して隣接する面で似た色を共有するように設定
+// 各面が自然に繋がるように、頂点カラーを設定
 const colors = [];
-const vertexOrder = [
-    [color1, color2, color3],
-    [color2, color3, color4],
-    [color3, color4, color1],
-    [color4, color1, color2],
-    [color2, color1, color4],
-    [color1, color3, color4],
-    [color3, color2, color4],
-    [color4, color3, color2]
+const vertexColors = [
+    color1, color2, color3,
+    color3, color4, color1,
+    color2, color3, color4,
+    color4, color1, color2
 ];
 
-for (let i = 0; i < geometry.attributes.position.count; i += 3) {
-    const colorSet = vertexOrder[(i / 3) % vertexOrder.length];
-    colors.push(colorSet[0].r, colorSet[0].g, colorSet[0].b);
-    colors.push(colorSet[1].r, colorSet[1].g, colorSet[1].b);
-    colors.push(colorSet[2].r, colorSet[2].g, colorSet[2].b);
+for (let i = 0; i < geometry.attributes.position.count; i++) {
+    const color = vertexColors[i % vertexColors.length];
+    colors.push(color.r, color.g, color.b);
 }
 
 geometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
