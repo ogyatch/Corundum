@@ -26,30 +26,32 @@ const color4 = new THREE.Color(0xe60073); // 濃いピンク
 
 // 各面に対して隣接する面で似た色を共有するように設定
 const colors = [];
+const vertexOrder = [
+    [color1, color2, color3],
+    [color2, color3, color4],
+    [color3, color4, color1],
+    [color4, color1, color2],
+    [color2, color1, color4],
+    [color1, color3, color4],
+    [color3, color2, color4],
+    [color4, color3, color2]
+];
+
 for (let i = 0; i < geometry.attributes.position.count; i += 3) {
-    if (i % 9 === 0) {
-        // 一つの面
-        colors.push(color1.r, color1.g, color1.b);
-        colors.push(color2.r, color2.g, color2.b);
-        colors.push(color3.r, color3.g, color3.b);
-    } else {
-        // 隣接する面
-        colors.push(color3.r, color3.g, color3.b);
-        colors.push(color4.r, color4.g, color4.b);
-        colors.push(color1.r, color1.g, color1.b);
-    }
+    const colorSet = vertexOrder[(i / 3) % vertexOrder.length];
+    colors.push(colorSet[0].r, colorSet[0].g, colorSet[0].b);
+    colors.push(colorSet[1].r, colorSet[1].g, colorSet[1].b);
+    colors.push(colorSet[2].r, colorSet[2].g, colorSet[2].b);
 }
 
 geometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
 
-// 影のないマテリアルを使用
+// 影のないマテリアルを使用し、ワイヤーフレームを無効化
 const material = new THREE.MeshBasicMaterial({ vertexColors: true, side: THREE.DoubleSide });
 
 // メッシュの作成
 const octahedron = new THREE.Mesh(geometry, material);
 scene.add(octahedron);
-
-// ライトの追加は不要、影をつけないため
 
 // レンダリング関数
 function render() {
