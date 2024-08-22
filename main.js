@@ -4,10 +4,9 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.150.0/build/three.m
 const scene = new THREE.Scene();
 
 // カメラの作成
-const initialPosition = { x: -2, y: 0.2, z: -0.5 }; // 初期位置を指定
-const initialDistance = Math.sqrt(initialPosition.x**2 + initialPosition.y**2 + initialPosition.z**2);
+const initialDistance = 5; // カメラの初期距離を一定に保つ
 const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-camera.position.set(initialPosition.x, initialPosition.y, initialPosition.z);
+camera.position.set(0, 0, initialDistance);
 camera.lookAt(0, 0, 0); // 中心点を向く
 
 // レンダラーの作成
@@ -61,41 +60,46 @@ const material = new THREE.MeshBasicMaterial({ vertexColors: true, side: THREE.D
 const octahedron = new THREE.Mesh(geometry, material);
 scene.add(octahedron);
 
+// 文字列をハッシュに変換し、それを方向にマッピングする関数
+function stringToDirection(inputString) {
+    // シンプルなハッシュ関数を使用
+    let hash = 0;
+    for (let i = 0; i < inputString.length; i++) {
+        hash = inputString.charCodeAt(i) + ((hash << 5) - hash);
+    }
+
+    // ハッシュから方向ベクトルを計算
+    let x = ((hash >> 16) & 0xff) / 255.0 * 2 - 1; // -1から1の範囲
+    let y = ((hash >> 8) & 0xff) / 255.0 * 2 - 1;
+    let z = (hash & 0xff) / 255.0 * 2 - 1;
+
+    // ベクトルの正規化
+    const length = Math.sqrt(x * x + y * y + z * z);
+    x /= length;
+    y /= length;
+    z /= length;
+
+    return { x, y, z };
+}
+
 // カメラの更新関数
 function updateCameraPosition() {
-    let x = parseFloat(document.getElementById('x').value);
-    let y = parseFloat(document.getElementById('y').value);
-    let z = parseFloat(document.getElementById('z').value);
+    const inputString = document.getElementById('inputString').value;
+    const direction = stringToDirection(inputString);
 
-    const distance = Math.sqrt(x**2 + y**2 + z**2);
-    const scaleFactor = initialDistance / distance;
-
-    // スケーリングを適用してカメラ位置を調整
-    x *= scaleFactor;
-    y *= scaleFactor;
-    z *= scaleFactor;
-
-    camera.position.set(x, y, z);
+    // 一定の距離を保ちながらカメラの位置を設定
+    camera.position.set(
+        direction.x * initialDistance,
+        direction.y * initialDistance,
+        direction.z * initialDistance
+    );
     camera.lookAt(0, 0, 0); // 常に中心点を向く
 
     render(); // カメラ位置を更新後に再描画
 }
 
-// ランダムなカメラ位置を生成する関数
-function generateRandomCameraPosition() {
-    let randomX = (Math.random() * 20 - 10).toFixed(1); // -10 から 10 の範囲
-    let randomY = (Math.random() * 20 - 10).toFixed(1); // -10 から 10 の範囲
-    let randomZ = (Math.random() * 20 - 10).toFixed(1);  // -10 から 10 の範囲
-
-    document.getElementById('x').value = randomX;
-    document.getElementById('y').value = randomY;
-    document.getElementById('z').value = randomZ;
-
-    updateCameraPosition(); // 新しいカメラ位置で再描画
-}
-
-// Generateボタンのイベントリスナー
-document.getElementById('generateRandom').addEventListener('click', generateRandomCameraPosition);
+// イベントリスナーを設定
+document.getElementById('updateCamera').addEventListener('click', updateCameraPosition);
 
 // レンダリング関数
 function render() {
